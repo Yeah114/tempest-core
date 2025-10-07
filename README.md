@@ -25,7 +25,7 @@ modules/Fatalder      # Fatalder 内联依赖
 
 环境需求：
 
-- Go 1.20+（项目 go.mod 指定为 1.25.1）
+- Go 1.20+（项目 go.mod 指定为 1.25.0）
 
 编译：
 
