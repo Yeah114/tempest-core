@@ -1,18 +1,15 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/Yeah114/tempest-core/internal/app"
-	"github.com/Yeah114/tempest-core/internal/server"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	"github.com/Yeah114/tempest-core/launcher"
 )
 
 func main() {
@@ -25,28 +22,30 @@ func main() {
 	flag.Parse()
 
 	listenAddr := fmt.Sprintf("%s:%d", address, port)
-	lis, err := net.Listen("tcp", listenAddr)
+
+	exited := make(chan struct{})
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	server, err := launcher.Start(ctx, launcher.Options{
+		Address: address,
+		Port:    port,
+		Callback: func() {
+			log.Printf("tempest-core server has stopped")
+			close(exited)
+		},
+	})
 	if err != nil {
-		log.Fatalf("failed to listen on %s: %v", listenAddr, err)
+		log.Fatalf("failed to start launcher: %v", err)
 	}
-
-	state := app.NewFatalderState()
-	services := server.NewServices(state)
-
-	grpcServer := grpc.NewServer()
-	services.Register(grpcServer)
-	reflection.Register(grpcServer)
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		sig := <-sigCh
 		log.Printf("received signal %s, shutting down", sig)
-		grpcServer.GracefulStop()
+		server.Stop()
 	}()
 
 	log.Printf("tempest-core listening on %s", listenAddr)
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("gRPC server stopped: %v", err)
-	}
+	<-exited
 }
