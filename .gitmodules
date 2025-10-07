@@ -1,0 +1,4 @@
+[submodule "modules/Fatalder"]
+	path = modules/Fatalder
+	url = git@github.com:Yeah114/Fatalder
+	branch = main
