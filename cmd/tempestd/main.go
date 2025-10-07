@@ -21,7 +21,7 @@ func main() {
 		port    = 20919
 	)
 	flag.StringVar(&address, "a", address, "Bind tempest-core service to a specific TCP/IPv4 address")
-	flag.IntVar(&port, "p", port, "Bind tempest-core service to a specific TCP/IPv4 port (default 20919)")
+	flag.IntVar(&port, "p", port, "Bind tempest-core service to a specific TCP/IPv4 port")
 	flag.Parse()
 
 	listenAddr := fmt.Sprintf("%s:%d", address, port)
