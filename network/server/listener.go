@@ -16,7 +16,7 @@ import (
 	"github.com/Yeah114/FunShuttler/game_control/resources_control"
 	"github.com/Yeah114/FunShuttler/uqholder"
 	uqdefines "github.com/Yeah114/FunShuttler/uqholder/defines"
-	"github.com/Yeah114/tempest-core/internal/app"
+	"github.com/Yeah114/tempest-core/network/app"
 	listenerpb "github.com/Yeah114/tempest-core/network_api/listener"
 	responsepb "github.com/Yeah114/tempest-core/network_api/response"
 	"google.golang.org/grpc/codes"

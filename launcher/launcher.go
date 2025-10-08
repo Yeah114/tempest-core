@@ -6,8 +6,8 @@ import (
 	"net"
 	"sync"
 
-	"github.com/Yeah114/tempest-core/internal/app"
-	core "github.com/Yeah114/tempest-core/internal/server"
+	"github.com/Yeah114/tempest-core/network/app"
+	core "github.com/Yeah114/tempest-core/network/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

@@ -8,7 +8,7 @@ import (
 
 	fpacket "github.com/Yeah114/FunShuttler/core/minecraft/protocol/packet"
 	"github.com/Yeah114/FunShuttler/game_control/game_interface"
-	"github.com/Yeah114/tempest-core/internal/app"
+	"github.com/Yeah114/tempest-core/network/app"
 	commandpb "github.com/Yeah114/tempest-core/network_api/command"
 	responsepb "github.com/Yeah114/tempest-core/network_api/response"
 	"google.golang.org/grpc/codes"

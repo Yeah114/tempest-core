@@ -10,7 +10,7 @@ import (
 	fpacket "github.com/Yeah114/FunShuttler/core/minecraft/protocol/packet"
 	"github.com/Yeah114/FunShuttler/game_control/resources_control"
 	uqdefines "github.com/Yeah114/FunShuttler/uqholder/defines"
-	"github.com/Yeah114/tempest-core/internal/app"
+	"github.com/Yeah114/tempest-core/network/app"
 )
 
 const abilityMask = protocol.AbilityBuild |

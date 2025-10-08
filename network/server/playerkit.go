@@ -11,7 +11,7 @@ import (
 	fpacket "github.com/Yeah114/FunShuttler/core/minecraft/protocol/packet"
 	"github.com/Yeah114/FunShuttler/game_control/game_interface"
 	uqdefines "github.com/Yeah114/FunShuttler/uqholder/defines"
-	"github.com/Yeah114/tempest-core/internal/app"
+	"github.com/Yeah114/tempest-core/network/app"
 	playerkitpb "github.com/Yeah114/tempest-core/network_api/playerkit"
 	responsepb "github.com/Yeah114/tempest-core/network_api/response"
 )

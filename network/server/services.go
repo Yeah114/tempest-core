@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/Yeah114/tempest-core/internal/app"
+	"github.com/Yeah114/tempest-core/network/app"
 	commandpb "github.com/Yeah114/tempest-core/network_api/command"
 	listenerpb "github.com/Yeah114/tempest-core/network_api/listener"
 	playerkitpb "github.com/Yeah114/tempest-core/network_api/playerkit"

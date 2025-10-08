@@ -6,7 +6,7 @@ import (
 	"errors"
 
 	"github.com/Yeah114/FunShuttler/game_control/resources_control"
-	"github.com/Yeah114/tempest-core/internal/app"
+	"github.com/Yeah114/tempest-core/network/app"
 	responsepb "github.com/Yeah114/tempest-core/network_api/response"
 	utilspb "github.com/Yeah114/tempest-core/network_api/utils"
 )

@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	"github.com/Yeah114/tempest-core/internal/app"
+	"github.com/Yeah114/tempest-core/network/app"
 	responsepb "github.com/Yeah114/tempest-core/network_api/response"
 	reversalerpb "github.com/Yeah114/tempest-core/network_api/reversaler"
 )
