@@ -29,7 +29,7 @@ func (s *ReversalerService) NewFateReversaler(ctx context.Context, req *reversal
 		ServerPassword:    req.GetServerPassword(),
 	}
 	if err := s.state.Connect(ctx, opts); err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	// Warm player registry.
 	_, _ = s.state.SnapshotPlayers()

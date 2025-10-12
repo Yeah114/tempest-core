@@ -39,8 +39,9 @@ type ListenerService struct {
 	listenerpb.UnimplementedListenerServiceServer
 	state *app.FatalderState
 
-	packetEvents chan packetEvent
-	bytesEvents  chan bytesEvent
+	queueMu     sync.RWMutex
+	packetQueue *app.EventQueue[packetEvent]
+	bytesQueue  *app.EventQueue[bytesEvent]
 
 	packetStreamActive atomic.Bool
 	bytesStreamActive  atomic.Bool
@@ -54,8 +55,6 @@ type ListenerService struct {
 func NewListenerService(state *app.FatalderState) *ListenerService {
 	svc := &ListenerService{
 		state:                state,
-		packetEvents:         make(chan packetEvent, 1024),
-		bytesEvents:          make(chan bytesEvent, 1024),
 		typedPacketListeners: make(map[uint32]string),
 		typedBytesListeners:  make(map[uint32]string),
 	}
@@ -75,6 +74,16 @@ func (s *ListenerService) monitorDisconnects() {
 		s.typedPacketListeners = make(map[uint32]string)
 		s.typedBytesListeners = make(map[uint32]string)
 		s.mu.Unlock()
+		s.queueMu.Lock()
+		if s.packetQueue != nil {
+			s.packetQueue.Close()
+			s.packetQueue = nil
+		}
+		if s.bytesQueue != nil {
+			s.bytesQueue.Close()
+			s.bytesQueue = nil
+		}
+		s.queueMu.Unlock()
 	}
 }
 
@@ -103,55 +112,97 @@ func (s *ListenerService) ListenFateArk(req *listenerpb.ListenFateArkRequest, st
 
 func (s *ListenerService) ListenPackets(req *listenerpb.ListenPacketsRequest, stream listenerpb.ListenerService_ListenPacketsServer) error {
 	if !s.packetStreamActive.CompareAndSwap(false, true) {
-		return status.Error(codes.ResourceExhausted, "packet stream already active")
+		return status.Error(codes.FailedPrecondition, "packet stream already active; close existing ListenPackets stream before retry")
 	}
 	defer s.packetStreamActive.Store(false)
 
+	queue := app.NewEventQueue[packetEvent](4096)
+	s.queueMu.Lock()
+	s.packetQueue = queue
+	s.queueMu.Unlock()
+	defer func() {
+		s.queueMu.Lock()
+		if s.packetQueue == queue {
+			s.packetQueue = nil
+		}
+		s.queueMu.Unlock()
+		queue.Close()
+	}()
+
+	ctx := stream.Context()
+	go func() {
+		<-ctx.Done()
+		queue.Close()
+	}()
+
 	for {
-		select {
-		case <-stream.Context().Done():
+		evt, ok := queue.Pop()
+		if !ok {
+			if ctx.Err() != nil {
+				return nil
+			}
 			return nil
-		case evt := <-s.packetEvents:
-			if evt.err != nil {
-				return evt.err
-			}
-			if evt.packet == nil {
-				continue
-			}
-			payload, err := json.Marshal(evt.packet)
-			if err != nil {
-				return err
-			}
-			if err := stream.Send(&listenerpb.Packet{
-				Id:      evt.packet.ID(),
-				Payload: string(payload),
-			}); err != nil {
-				return err
-			}
+		}
+		if evt.err != nil {
+			return evt.err
+		}
+		if evt.packet == nil {
+			continue
+		}
+		payload, err := json.Marshal(evt.packet)
+		if err != nil {
+			return err
+		}
+		if err := stream.Send(&listenerpb.Packet{
+			Id:      evt.packet.ID(),
+			Payload: string(payload),
+		}); err != nil {
+			return err
 		}
 	}
 }
 
 func (s *ListenerService) ListenBytesPackets(req *listenerpb.ListenBytesPacketsRequest, stream listenerpb.ListenerService_ListenBytesPacketsServer) error {
 	if !s.bytesStreamActive.CompareAndSwap(false, true) {
-		return status.Error(codes.ResourceExhausted, "bytes packet stream already active")
+		return status.Error(codes.FailedPrecondition, "bytes packet stream already active; close existing ListenBytesPackets stream before retry")
 	}
 	defer s.bytesStreamActive.Store(false)
 
+	queue := app.NewEventQueue[bytesEvent](4096)
+	s.queueMu.Lock()
+	s.bytesQueue = queue
+	s.queueMu.Unlock()
+	defer func() {
+		s.queueMu.Lock()
+		if s.bytesQueue == queue {
+			s.bytesQueue = nil
+		}
+		s.queueMu.Unlock()
+		queue.Close()
+	}()
+
+	ctx := stream.Context()
+	go func() {
+		<-ctx.Done()
+		queue.Close()
+	}()
+
 	for {
-		select {
-		case <-stream.Context().Done():
+		evt, ok := queue.Pop()
+		if !ok {
+			if ctx.Err() != nil {
+				return nil
+			}
 			return nil
-		case evt := <-s.bytesEvents:
-			if evt.err != nil {
-				return evt.err
-			}
-			if err := stream.Send(&listenerpb.BytesPacket{
-				Id:      evt.id,
-				Payload: evt.payload,
-			}); err != nil {
-				return err
-			}
+		}
+		if evt.err != nil {
+			return evt.err
+		}
+		if err := stream.Send(&listenerpb.BytesPacket{
+			Id:      evt.id,
+			Payload: evt.payload,
+		}); err != nil {
+			return err
 		}
 	}
 }
@@ -183,7 +234,7 @@ func (s *ListenerService) ListenTypedPacket(ctx context.Context, req *listenerpb
 		return nil
 	})
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	return generalSuccess(""), nil
 }
@@ -229,7 +280,7 @@ func (s *ListenerService) ListenTypedBytesPacket(ctx context.Context, req *liste
 		return nil
 	})
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	return generalSuccess(""), nil
 }
@@ -427,17 +478,23 @@ func (s *ListenerService) streamTextPackets(filter string, stream listenerpb.Lis
 }
 
 func (s *ListenerService) pushPacketEvent(evt packetEvent) {
-	select {
-	case s.packetEvents <- evt:
-	default:
+	s.queueMu.RLock()
+	queue := s.packetQueue
+	s.queueMu.RUnlock()
+	if queue == nil {
+		return
 	}
+	queue.Push(evt)
 }
 
 func (s *ListenerService) pushBytesEvent(evt bytesEvent) {
-	select {
-	case s.bytesEvents <- evt:
-	default:
+	s.queueMu.RLock()
+	queue := s.bytesQueue
+	s.queueMu.RUnlock()
+	if queue == nil {
+		return
 	}
+	queue.Push(evt)
 }
 
 func (s *ListenerService) lookupPlayer(uuidStr string) (uqdefines.PlayerUQReader, error) {

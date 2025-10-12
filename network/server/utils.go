@@ -9,6 +9,8 @@ import (
 	"github.com/Yeah114/tempest-core/network/app"
 	responsepb "github.com/Yeah114/tempest-core/network_api/response"
 	utilspb "github.com/Yeah114/tempest-core/network_api/utils"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // UtilsService bridges misc helper endpoints.
@@ -25,21 +27,21 @@ func NewUtilsService(state *app.FatalderState) *UtilsService {
 func (s *UtilsService) SendPacket(ctx context.Context, req *utilspb.SendPacketRequest) (*responsepb.GeneralResponse, error) {
 	pool, err := s.state.PacketPool()
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	ctor, ok := pool[uint32(req.GetPacketId())]
 	if !ok || ctor == nil {
-		return generalFailure(errors.New("packet id not supported")), nil
+		return nil, status.Error(codes.InvalidArgument, "packet id not supported")
 	}
 	packet := ctor()
 	if err := json.Unmarshal([]byte(req.GetJsonStr()), packet); err != nil {
-		return generalFailure(err), nil
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	err = s.state.WithResources(func(res *resources_control.Resources) error {
 		return res.WritePacket(packet)
 	})
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	return generalSuccess(""), nil
 }
@@ -47,11 +49,11 @@ func (s *UtilsService) SendPacket(ctx context.Context, req *utilspb.SendPacketRe
 func (s *UtilsService) GetPacketNameIDMapping(ctx context.Context, req *utilspb.GetPacketNameIDMappingRequest) (*responsepb.GeneralResponse, error) {
 	mapping, err := s.state.PacketNameID()
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	data, err := json.Marshal(mapping)
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return generalSuccess(string(data)), nil
 }
@@ -76,11 +78,11 @@ func (s *UtilsService) GetClientMaintainedBotBasicInfo(ctx context.Context, req 
 		return nil
 	})
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	data, err := json.Marshal(info)
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return generalSuccess(string(data)), nil
 }
@@ -140,11 +142,11 @@ func (s *UtilsService) GetClientMaintainedExtendInfo(ctx context.Context, req *u
 		return nil
 	})
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	data, err := json.Marshal(info)
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return generalSuccess(string(data)), nil
 }

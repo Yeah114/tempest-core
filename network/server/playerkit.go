@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -14,6 +13,8 @@ import (
 	"github.com/Yeah114/tempest-core/network/app"
 	playerkitpb "github.com/Yeah114/tempest-core/network_api/playerkit"
 	responsepb "github.com/Yeah114/tempest-core/network_api/response"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // PlayerKitService exposes player utilities over gRPC.
@@ -30,7 +31,7 @@ func NewPlayerKitService(state *app.FatalderState) *PlayerKitService {
 func (s *PlayerKitService) GetAllOnlinePlayers(ctx context.Context, req *playerkitpb.GetAllOnlinePlayersRequest) (*responsepb.GeneralResponse, error) {
 	players, err := s.state.SnapshotPlayers()
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	registry := s.state.Players()
 	out := make([]string, 0, len(players))
@@ -47,7 +48,7 @@ func (s *PlayerKitService) GetAllOnlinePlayers(ctx context.Context, req *playerk
 	}
 	data, err := json.Marshal(out)
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return generalSuccess(string(data)), nil
 }
@@ -55,16 +56,16 @@ func (s *PlayerKitService) GetAllOnlinePlayers(ctx context.Context, req *playerk
 func (s *PlayerKitService) GetPlayerByName(ctx context.Context, req *playerkitpb.GetPlayerByNameRequest) (*responsepb.GeneralResponse, error) {
 	name := strings.TrimSpace(req.GetName())
 	if name == "" {
-		return generalFailure(errors.New("player name required")), nil
+		return nil, status.Error(codes.InvalidArgument, "player name required")
 	}
 
 	player, err := fetchPlayerByName(s.state, name)
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	uuidStr, ok := player.GetUUIDString()
 	if !ok || uuidStr == "" {
-		return generalFailure(errors.New("player uuid unavailable")), nil
+		return nil, status.Error(codes.Internal, "player uuid unavailable")
 	}
 	s.state.Players().Rebind(uuidStr, player)
 	return generalSuccess(uuidStr), nil
@@ -73,11 +74,11 @@ func (s *PlayerKitService) GetPlayerByName(ctx context.Context, req *playerkitpb
 func (s *PlayerKitService) GetPlayerByUUID(ctx context.Context, req *playerkitpb.GetPlayerByUUIDRequest) (*responsepb.GeneralResponse, error) {
 	player, err := s.ensurePlayer(req.GetUuid())
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	uuidStr, ok := player.GetUUIDString()
 	if !ok || uuidStr == "" {
-		return generalFailure(errors.New("player uuid unavailable")), nil
+		return nil, status.Error(codes.Internal, "player uuid unavailable")
 	}
 	return generalSuccess(uuidStr), nil
 }
@@ -90,11 +91,11 @@ func (s *PlayerKitService) ReleaseBindPlayer(ctx context.Context, req *playerkit
 func (s *PlayerKitService) GetPlayerName(ctx context.Context, req *playerkitpb.GetPlayerNameRequest) (*responsepb.GeneralResponse, error) {
 	player, err := s.ensurePlayer(req.GetUuidStr())
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	name, ok := player.GetUsername()
 	if !ok || name == "" {
-		return generalFailure(errors.New("player name unavailable")), nil
+		return nil, status.Error(codes.Internal, "player name unavailable")
 	}
 	return generalSuccess(name), nil
 }
@@ -102,35 +103,35 @@ func (s *PlayerKitService) GetPlayerName(ctx context.Context, req *playerkitpb.G
 func (s *PlayerKitService) GetPlayerEntityUniqueID(ctx context.Context, req *playerkitpb.GetPlayerEntityUniqueIDRequest) (*responsepb.GeneralInt64Response, error) {
 	player, err := s.ensurePlayer(req.GetUuidStr())
 	if err != nil {
-		return int64Response(0, err), nil
+		return nil, toStatusError(err)
 	}
 	id, ok := player.GetEntityUniqueID()
 	if !ok {
-		return int64Response(0, errors.New("entity unique id unavailable")), nil
+		return nil, status.Error(codes.Internal, "entity unique id unavailable")
 	}
-	return int64Response(id, nil), nil
+	return int64Success(id), nil
 }
 
 func (s *PlayerKitService) GetPlayerLoginTime(ctx context.Context, req *playerkitpb.GetPlayerLoginTimeRequest) (*responsepb.GeneralInt64Response, error) {
 	player, err := s.ensurePlayer(req.GetUuidStr())
 	if err != nil {
-		return int64Response(0, err), nil
+		return nil, toStatusError(err)
 	}
 	ts, ok := player.GetLoginTime()
 	if !ok {
-		return int64Response(0, errors.New("login time unavailable")), nil
+		return nil, status.Error(codes.Internal, "login time unavailable")
 	}
-	return int64Response(ts.Unix(), nil), nil
+	return int64Success(ts.Unix()), nil
 }
 
 func (s *PlayerKitService) GetPlayerPlatformChatID(ctx context.Context, req *playerkitpb.GetPlayerPlatformChatIDRequest) (*responsepb.GeneralResponse, error) {
 	player, err := s.ensurePlayer(req.GetUuidStr())
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	value, ok := player.GetPlatformChatID()
 	if !ok {
-		return generalFailure(errors.New("platform chat id unavailable")), nil
+		return nil, status.Error(codes.Internal, "platform chat id unavailable")
 	}
 	return generalSuccess(value), nil
 }
@@ -138,23 +139,23 @@ func (s *PlayerKitService) GetPlayerPlatformChatID(ctx context.Context, req *pla
 func (s *PlayerKitService) GetPlayerBuildPlatform(ctx context.Context, req *playerkitpb.GetPlayerBuildPlatformRequest) (*responsepb.GeneralInt32Response, error) {
 	player, err := s.ensurePlayer(req.GetUuidStr())
 	if err != nil {
-		return int32Response(0, err), nil
+		return nil, toStatusError(err)
 	}
 	value, ok := player.GetBuildPlatform()
 	if !ok {
-		return int32Response(0, errors.New("build platform unavailable")), nil
+		return nil, status.Error(codes.Internal, "build platform unavailable")
 	}
-	return int32Response(value, nil), nil
+	return int32Success(value), nil
 }
 
 func (s *PlayerKitService) GetPlayerSkinID(ctx context.Context, req *playerkitpb.GetPlayerSkinIDRequest) (*responsepb.GeneralResponse, error) {
 	player, err := s.ensurePlayer(req.GetUuidStr())
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	value, ok := player.GetSkinID()
 	if !ok {
-		return generalFailure(errors.New("skin id unavailable")), nil
+		return nil, status.Error(codes.Internal, "skin id unavailable")
 	}
 	return generalSuccess(value), nil
 }
@@ -164,7 +165,7 @@ func (s *PlayerKitService) GetPlayerCanBuild(ctx context.Context, req *playerkit
 }
 
 func (s *PlayerKitService) SetPlayerCanBuild(ctx context.Context, req *playerkitpb.SetPlayerCanBuildRequest) (*responsepb.GeneralResponse, error) {
-	return s.setAbility(req.GetUuidStr(), protocol.AbilityBuild, req.GetAllow()), nil
+	return s.setAbility(req.GetUuidStr(), protocol.AbilityBuild, req.GetAllow())
 }
 
 func (s *PlayerKitService) GetPlayerCanDig(ctx context.Context, req *playerkitpb.GetPlayerCanDigRequest) (*responsepb.GeneralBoolResponse, error) {
@@ -172,7 +173,7 @@ func (s *PlayerKitService) GetPlayerCanDig(ctx context.Context, req *playerkitpb
 }
 
 func (s *PlayerKitService) SetPlayerCanDig(ctx context.Context, req *playerkitpb.SetPlayerCanDigRequest) (*responsepb.GeneralResponse, error) {
-	return s.setAbility(req.GetUuidStr(), protocol.AbilityMine, req.GetAllow()), nil
+	return s.setAbility(req.GetUuidStr(), protocol.AbilityMine, req.GetAllow())
 }
 
 func (s *PlayerKitService) GetPlayerCanDoorsAndSwitches(ctx context.Context, req *playerkitpb.GetPlayerCanDoorsAndSwitchesRequest) (*responsepb.GeneralBoolResponse, error) {
@@ -180,7 +181,7 @@ func (s *PlayerKitService) GetPlayerCanDoorsAndSwitches(ctx context.Context, req
 }
 
 func (s *PlayerKitService) SetPlayerCanDoorsAndSwitches(ctx context.Context, req *playerkitpb.SetPlayerCanDoorsAndSwitchesRequest) (*responsepb.GeneralResponse, error) {
-	return s.setAbility(req.GetUuidStr(), protocol.AbilityDoorsAndSwitches, req.GetAllow()), nil
+	return s.setAbility(req.GetUuidStr(), protocol.AbilityDoorsAndSwitches, req.GetAllow())
 }
 
 func (s *PlayerKitService) GetPlayerCanOpenContainers(ctx context.Context, req *playerkitpb.GetPlayerCanOpenContainersRequest) (*responsepb.GeneralBoolResponse, error) {
@@ -188,7 +189,7 @@ func (s *PlayerKitService) GetPlayerCanOpenContainers(ctx context.Context, req *
 }
 
 func (s *PlayerKitService) SetPlayerCanOpenContainers(ctx context.Context, req *playerkitpb.SetPlayerCanOpenContainersRequest) (*responsepb.GeneralResponse, error) {
-	return s.setAbility(req.GetUuidStr(), protocol.AbilityOpenContainers, req.GetAllow()), nil
+	return s.setAbility(req.GetUuidStr(), protocol.AbilityOpenContainers, req.GetAllow())
 }
 
 func (s *PlayerKitService) GetPlayerCanAttackPlayers(ctx context.Context, req *playerkitpb.GetPlayerCanAttackPlayersRequest) (*responsepb.GeneralBoolResponse, error) {
@@ -196,7 +197,7 @@ func (s *PlayerKitService) GetPlayerCanAttackPlayers(ctx context.Context, req *p
 }
 
 func (s *PlayerKitService) SetPlayerCanAttackPlayers(ctx context.Context, req *playerkitpb.SetPlayerCanAttackPlayersRequest) (*responsepb.GeneralResponse, error) {
-	return s.setAbility(req.GetUuidStr(), protocol.AbilityAttackPlayers, req.GetAllow()), nil
+	return s.setAbility(req.GetUuidStr(), protocol.AbilityAttackPlayers, req.GetAllow())
 }
 
 func (s *PlayerKitService) GetPlayerCanAttackMobs(ctx context.Context, req *playerkitpb.GetPlayerCanAttackMobsRequest) (*responsepb.GeneralBoolResponse, error) {
@@ -204,7 +205,7 @@ func (s *PlayerKitService) GetPlayerCanAttackMobs(ctx context.Context, req *play
 }
 
 func (s *PlayerKitService) SetPlayerCanAttackMobs(ctx context.Context, req *playerkitpb.SetPlayerCanAttackMobsRequest) (*responsepb.GeneralResponse, error) {
-	return s.setAbility(req.GetUuidStr(), protocol.AbilityAttackMobs, req.GetAllow()), nil
+	return s.setAbility(req.GetUuidStr(), protocol.AbilityAttackMobs, req.GetAllow())
 }
 
 func (s *PlayerKitService) GetPlayerCanOperatorCommands(ctx context.Context, req *playerkitpb.GetPlayerCanOperatorCommandsRequest) (*responsepb.GeneralBoolResponse, error) {
@@ -212,7 +213,7 @@ func (s *PlayerKitService) GetPlayerCanOperatorCommands(ctx context.Context, req
 }
 
 func (s *PlayerKitService) SetPlayerCanOperatorCommands(ctx context.Context, req *playerkitpb.SetPlayerCanOperatorCommandsRequest) (*responsepb.GeneralResponse, error) {
-	return s.setAbility(req.GetUuidStr(), protocol.AbilityOperatorCommands, req.GetAllow()), nil
+	return s.setAbility(req.GetUuidStr(), protocol.AbilityOperatorCommands, req.GetAllow())
 }
 
 func (s *PlayerKitService) GetPlayerCanTeleport(ctx context.Context, req *playerkitpb.GetPlayerCanTeleportRequest) (*responsepb.GeneralBoolResponse, error) {
@@ -220,11 +221,10 @@ func (s *PlayerKitService) GetPlayerCanTeleport(ctx context.Context, req *player
 }
 
 func (s *PlayerKitService) SetPlayerCanTeleport(ctx context.Context, req *playerkitpb.SetPlayerCanTeleportRequest) (*responsepb.GeneralBoolResponse, error) {
-	resp := s.setAbility(req.GetUuidStr(), protocol.AbilityTeleport, req.GetAllow())
-	if resp.Status == responsepb.GeneralResponse_SUCCESS {
-		return boolResponse(true, nil), nil
+	if _, err := s.setAbility(req.GetUuidStr(), protocol.AbilityTeleport, req.GetAllow()); err != nil {
+		return nil, err
 	}
-	return boolResponse(false, errors.New(resp.ErrorMsg)), nil
+	return boolSuccess(true), nil
 }
 
 func (s *PlayerKitService) GetPlayerStatusInvulnerable(ctx context.Context, req *playerkitpb.GetPlayerStatusInvulnerableRequest) (*responsepb.GeneralBoolResponse, error) {
@@ -242,11 +242,11 @@ func (s *PlayerKitService) GetPlayerStatusMayFly(ctx context.Context, req *playe
 func (s *PlayerKitService) GetPlayerDeviceID(ctx context.Context, req *playerkitpb.GetPlayerDeviceIDRequest) (*responsepb.GeneralResponse, error) {
 	player, err := s.ensurePlayer(req.GetUuidStr())
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	value, ok := player.GetDeviceID()
 	if !ok {
-		return generalFailure(errors.New("device id unavailable")), nil
+		return nil, status.Error(codes.Internal, "device id unavailable")
 	}
 	return generalSuccess(value), nil
 }
@@ -254,27 +254,27 @@ func (s *PlayerKitService) GetPlayerDeviceID(ctx context.Context, req *playerkit
 func (s *PlayerKitService) GetPlayerEntityRuntimeID(ctx context.Context, req *playerkitpb.GetPlayerEntityRuntimeIDRequest) (*responsepb.GeneralUint64Response, error) {
 	player, err := s.ensurePlayer(req.GetUuidStr())
 	if err != nil {
-		return uint64Response(0, err), nil
+		return nil, toStatusError(err)
 	}
 	value, ok := player.GetEntityRuntimeID()
 	if !ok {
-		return uint64Response(0, errors.New("runtime id unavailable")), nil
+		return nil, status.Error(codes.Internal, "runtime id unavailable")
 	}
-	return uint64Response(value, nil), nil
+	return uint64Success(value), nil
 }
 
 func (s *PlayerKitService) GetPlayerEntityMetadata(ctx context.Context, req *playerkitpb.GetPlayerEntityMetadataRequest) (*responsepb.GeneralResponse, error) {
 	player, err := s.ensurePlayer(req.GetUuidStr())
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	meta, ok := player.GetEntityMetadata()
 	if !ok {
-		return generalFailure(errors.New("entity metadata unavailable")), nil
+		return nil, status.Error(codes.Internal, "entity metadata unavailable")
 	}
 	data, err := json.Marshal(meta)
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return generalSuccess(string(data)), nil
 }
@@ -282,26 +282,29 @@ func (s *PlayerKitService) GetPlayerEntityMetadata(ctx context.Context, req *pla
 func (s *PlayerKitService) GetPlayerIsOP(ctx context.Context, req *playerkitpb.GetPlayerIsOPRequest) (*responsepb.GeneralBoolResponse, error) {
 	player, err := s.ensurePlayer(req.GetUuidStr())
 	if err != nil {
-		return boolResponse(false, err), nil
+		return nil, toStatusError(err)
 	}
 	if player == nil {
-		return boolResponse(false, errors.New("player not bound")), nil
+		return nil, status.Error(codes.Internal, "player not bound")
 	}
 	if perm, ok := player.GetCommandPermissions(); ok {
 		if perm >= byte(fpacket.CommandPermissionLevelAdmin) {
-			return boolResponse(true, nil), nil
+			return boolSuccess(true), nil
 		}
 	}
 	value, abErr := abilityEnabled(player, protocol.AbilityOperatorCommands)
-	return boolResponse(value, abErr), nil
+	if abErr != nil {
+		return nil, toStatusError(abErr)
+	}
+	return boolSuccess(value), nil
 }
 
 func (s *PlayerKitService) GetPlayerOnline(ctx context.Context, req *playerkitpb.GetPlayerOnlineRequest) (*responsepb.GeneralBoolResponse, error) {
 	player, err := s.ensurePlayer(req.GetUuidStr())
 	if err != nil {
-		return boolResponse(false, err), nil
+		return nil, toStatusError(err)
 	}
-	return boolResponse(player.StillOnline(), nil), nil
+	return boolSuccess(player.StillOnline()), nil
 }
 
 func (s *PlayerKitService) SendPlayerChat(ctx context.Context, req *playerkitpb.SendPlayerChatRequest) (*responsepb.GeneralResponse, error) {
@@ -318,11 +321,11 @@ func (s *PlayerKitService) SendPlayerTitle(ctx context.Context, req *playerkitpb
 	subTitle := strings.TrimSpace(req.GetSubTitle())
 	player, err := s.ensurePlayer(uuid)
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	name, ok := player.GetUsername()
 	if !ok || name == "" {
-		return generalFailure(errors.New("player name unavailable")), nil
+		return nil, status.Error(codes.Internal, "player name unavailable")
 	}
 
 	err = s.withCommands(func(cmds *game_interface.Commands) error {
@@ -348,7 +351,7 @@ func (s *PlayerKitService) SendPlayerTitle(ctx context.Context, req *playerkitpb
 		return nil
 	})
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	return generalSuccess(""), nil
 }
@@ -364,7 +367,7 @@ func (s *PlayerKitService) InterceptPlayerJustNextInput(ctx context.Context, req
 
 func (s *PlayerKitService) ensurePlayer(uuidStr string) (uqdefines.PlayerUQReader, error) {
 	if uuidStr == "" {
-		return nil, errors.New("player uuid required")
+		return nil, status.Error(codes.InvalidArgument, "player uuid required")
 	}
 	registry := s.state.Players()
 	if player, ok := registry.Get(uuidStr); ok && player != nil {
@@ -381,34 +384,37 @@ func (s *PlayerKitService) ensurePlayer(uuidStr string) (uqdefines.PlayerUQReade
 func (s *PlayerKitService) abilityBool(uuid string, ability uint32) (*responsepb.GeneralBoolResponse, error) {
 	player, err := s.ensurePlayer(uuid)
 	if err != nil {
-		return boolResponse(false, err), nil
+		return nil, toStatusError(err)
 	}
 	value, abErr := abilityEnabled(player, ability)
-	return boolResponse(value, abErr), nil
+	if abErr != nil {
+		return nil, toStatusError(abErr)
+	}
+	return boolSuccess(value), nil
 }
 
-func (s *PlayerKitService) setAbility(uuid string, ability uint32, allow bool) *responsepb.GeneralResponse {
+func (s *PlayerKitService) setAbility(uuid string, ability uint32, allow bool) (*responsepb.GeneralResponse, error) {
 	player, err := s.ensurePlayer(uuid)
 	if err != nil {
-		return generalFailure(err)
+		return nil, toStatusError(err)
 	}
 	if err := updateAbility(s.state, player, ability, allow); err != nil {
-		return generalFailure(err)
+		return nil, toStatusError(err)
 	}
-	return generalSuccess("")
+	return generalSuccess(""), nil
 }
 
 func (s *PlayerKitService) sendMessage(uuid, message, command, action string) (*responsepb.GeneralResponse, error) {
 	if message == "" {
-		return generalFailure(errors.New("message required")), nil
+		return nil, status.Error(codes.InvalidArgument, "message required")
 	}
 	player, err := s.ensurePlayer(uuid)
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	name, ok := player.GetUsername()
 	if !ok || name == "" {
-		return generalFailure(errors.New("player name unavailable")), nil
+		return nil, status.Error(codes.Internal, "player name unavailable")
 	}
 
 	err = s.withCommands(func(cmds *game_interface.Commands) error {
@@ -426,7 +432,7 @@ func (s *PlayerKitService) sendMessage(uuid, message, command, action string) (*
 		return cmds.SendWSCommand(cmd)
 	})
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	return generalSuccess(""), nil
 }
@@ -435,7 +441,7 @@ func (s *PlayerKitService) withCommands(fn func(*game_interface.Commands) error)
 	return s.state.WithGameInterface(func(iface *game_interface.GameInterface) error {
 		cmds := iface.Commands()
 		if cmds == nil {
-			return errors.New("commands interface unavailable")
+			return status.Error(codes.FailedPrecondition, "commands interface unavailable")
 		}
 		return fn(cmds)
 	})

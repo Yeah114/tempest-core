@@ -31,7 +31,7 @@ func (s *CommandService) SendWOCommand(ctx context.Context, req *commandpb.SendW
 		return iface.Commands().SendSettingsCommand(strings.TrimSpace(req.GetCmd()), false)
 	})
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	return generalSuccess(""), nil
 }
@@ -41,7 +41,7 @@ func (s *CommandService) SendWSCommand(ctx context.Context, req *commandpb.SendW
 		return iface.Commands().SendWSCommand(strings.TrimSpace(req.GetCmd()))
 	})
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	return generalSuccess(""), nil
 }
@@ -51,7 +51,7 @@ func (s *CommandService) SendPlayerCommand(ctx context.Context, req *commandpb.S
 		return iface.Commands().SendPlayerCommand(strings.TrimSpace(req.GetCmd()))
 	})
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	return generalSuccess(""), nil
 }
@@ -62,7 +62,7 @@ func (s *CommandService) SendAICommand(ctx context.Context, req *commandpb.SendA
 		return iface.Commands().SendWSCommand(cmd)
 	})
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	return generalSuccess(""), nil
 }
@@ -75,11 +75,11 @@ func (s *CommandService) SendWSCommandWithResponse(ctx context.Context, req *com
 		return err
 	})
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	payload, err := marshalCommandOutput(output)
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	return generalSuccess(payload), nil
 }
@@ -92,11 +92,11 @@ func (s *CommandService) SendPlayerCommandWithResponse(ctx context.Context, req 
 		return err
 	})
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	payload, err := marshalCommandOutput(output)
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	return generalSuccess(payload), nil
 }
@@ -114,11 +114,11 @@ func (s *CommandService) SendAICommandWithResponse(ctx context.Context, req *com
 		return err
 	})
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	payload, err := marshalCommandOutput(output)
 	if err != nil {
-		return generalFailure(err), nil
+		return nil, toStatusError(err)
 	}
 	return generalSuccess(payload), nil
 }
