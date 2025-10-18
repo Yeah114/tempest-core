@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/Yeah114/FunShuttler/core/minecraft/protocol"
 	"github.com/Yeah114/FunShuttler/game_control/resources_control"
 	"github.com/Yeah114/tempest-core/network/app"
 	responsepb "github.com/Yeah114/tempest-core/network_api/response"
@@ -44,6 +45,36 @@ func (s *UtilsService) SendPacket(ctx context.Context, req *utilspb.SendPacketRe
 		return nil, toStatusError(err)
 	}
 	return generalSuccess(""), nil
+}
+
+func (s *UtilsService) SendBytePacket(ctx context.Context, req *utilspb.SendBytePacketRequest) (*responsepb.GeneralResponse, error) {
+	payload := req.GetPayload()
+	if len(payload) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "payload cannot be empty")
+	}
+	copyPayload := append([]byte(nil), payload...)
+	if err := s.state.WithResources(func(res *resources_control.Resources) error {
+		return res.WritePacket(&rawPacket{
+			id:      uint32(req.GetPacketId()),
+			payload: copyPayload,
+		})
+	}); err != nil {
+		return nil, toStatusError(err)
+	}
+	return generalSuccess(""), nil
+}
+
+type rawPacket struct {
+	id      uint32
+	payload []byte
+}
+
+func (p *rawPacket) ID() uint32 {
+	return p.id
+}
+
+func (p *rawPacket) Marshal(rw protocol.IO) {
+	rw.Bytes(&p.payload)
 }
 
 func (s *UtilsService) GetPacketNameIDMapping(ctx context.Context, req *utilspb.GetPacketNameIDMappingRequest) (*responsepb.GeneralResponse, error) {

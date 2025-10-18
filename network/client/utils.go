@@ -48,6 +48,22 @@ func (c *UtilsClient) SendPacket(ctx context.Context, packetID int32, jsonPayloa
 	return err
 }
 
+func (c *UtilsClient) SendBytePacket(ctx context.Context, packetID int32, payload []byte, opts ...grpc.CallOption) error {
+	if err := c.ready(); err != nil {
+		return err
+	}
+	req := &utilspb.SendBytePacketRequest{
+		PacketId: packetID,
+		Payload:  append([]byte(nil), payload...),
+	}
+	resp, err := c.rpc.SendBytePacket(ctx, req, c.callOpts(opts)...)
+	if err != nil {
+		return err
+	}
+	_, err = generalPayload(resp)
+	return err
+}
+
 func (c *UtilsClient) GetPacketNameIDMapping(ctx context.Context, opts ...grpc.CallOption) (map[string]uint32, error) {
 	if err := c.ready(); err != nil {
 		return nil, err

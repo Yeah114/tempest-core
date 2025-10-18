@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	UtilsService_SendPacket_FullMethodName                      = "/fateark.proto.utils.UtilsService/SendPacket"
+	UtilsService_SendBytePacket_FullMethodName                  = "/fateark.proto.utils.UtilsService/SendBytePacket"
 	UtilsService_GetPacketNameIDMapping_FullMethodName          = "/fateark.proto.utils.UtilsService/GetPacketNameIDMapping"
 	UtilsService_GetClientMaintainedBotBasicInfo_FullMethodName = "/fateark.proto.utils.UtilsService/GetClientMaintainedBotBasicInfo"
 	UtilsService_GetClientMaintainedExtendInfo_FullMethodName   = "/fateark.proto.utils.UtilsService/GetClientMaintainedExtendInfo"
@@ -31,6 +32,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UtilsServiceClient interface {
 	SendPacket(ctx context.Context, in *SendPacketRequest, opts ...grpc.CallOption) (*response.GeneralResponse, error)
+	SendBytePacket(ctx context.Context, in *SendBytePacketRequest, opts ...grpc.CallOption) (*response.GeneralResponse, error)
 	GetPacketNameIDMapping(ctx context.Context, in *GetPacketNameIDMappingRequest, opts ...grpc.CallOption) (*response.GeneralResponse, error)
 	GetClientMaintainedBotBasicInfo(ctx context.Context, in *GetClientMaintainedBotBasicInfoRequest, opts ...grpc.CallOption) (*response.GeneralResponse, error)
 	GetClientMaintainedExtendInfo(ctx context.Context, in *GetClientMaintainedExtendInfoRequest, opts ...grpc.CallOption) (*response.GeneralResponse, error)
@@ -48,6 +50,16 @@ func (c *utilsServiceClient) SendPacket(ctx context.Context, in *SendPacketReque
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(response.GeneralResponse)
 	err := c.cc.Invoke(ctx, UtilsService_SendPacket_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *utilsServiceClient) SendBytePacket(ctx context.Context, in *SendBytePacketRequest, opts ...grpc.CallOption) (*response.GeneralResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(response.GeneralResponse)
+	err := c.cc.Invoke(ctx, UtilsService_SendBytePacket_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -89,6 +101,7 @@ func (c *utilsServiceClient) GetClientMaintainedExtendInfo(ctx context.Context, 
 // for forward compatibility.
 type UtilsServiceServer interface {
 	SendPacket(context.Context, *SendPacketRequest) (*response.GeneralResponse, error)
+	SendBytePacket(context.Context, *SendBytePacketRequest) (*response.GeneralResponse, error)
 	GetPacketNameIDMapping(context.Context, *GetPacketNameIDMappingRequest) (*response.GeneralResponse, error)
 	GetClientMaintainedBotBasicInfo(context.Context, *GetClientMaintainedBotBasicInfoRequest) (*response.GeneralResponse, error)
 	GetClientMaintainedExtendInfo(context.Context, *GetClientMaintainedExtendInfoRequest) (*response.GeneralResponse, error)
@@ -104,6 +117,9 @@ type UnimplementedUtilsServiceServer struct{}
 
 func (UnimplementedUtilsServiceServer) SendPacket(context.Context, *SendPacketRequest) (*response.GeneralResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendPacket not implemented")
+}
+func (UnimplementedUtilsServiceServer) SendBytePacket(context.Context, *SendBytePacketRequest) (*response.GeneralResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendBytePacket not implemented")
 }
 func (UnimplementedUtilsServiceServer) GetPacketNameIDMapping(context.Context, *GetPacketNameIDMappingRequest) (*response.GeneralResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPacketNameIDMapping not implemented")
@@ -149,6 +165,24 @@ func _UtilsService_SendPacket_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UtilsServiceServer).SendPacket(ctx, req.(*SendPacketRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UtilsService_SendBytePacket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendBytePacketRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UtilsServiceServer).SendBytePacket(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UtilsService_SendBytePacket_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UtilsServiceServer).SendBytePacket(ctx, req.(*SendBytePacketRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -217,6 +251,10 @@ var UtilsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendPacket",
 			Handler:    _UtilsService_SendPacket_Handler,
+		},
+		{
+			MethodName: "SendBytePacket",
+			Handler:    _UtilsService_SendBytePacket_Handler,
 		},
 		{
 			MethodName: "GetPacketNameIDMapping",

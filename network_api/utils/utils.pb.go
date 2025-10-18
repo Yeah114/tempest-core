@@ -74,6 +74,58 @@ func (x *SendPacketRequest) GetJsonStr() string {
 	return ""
 }
 
+type SendBytePacketRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PacketId      int32                  `protobuf:"varint,1,opt,name=packet_id,json=packetId,proto3" json:"packet_id,omitempty"`
+	Payload       []byte                 `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendBytePacketRequest) Reset() {
+	*x = SendBytePacketRequest{}
+	mi := &file_proto_utils_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendBytePacketRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendBytePacketRequest) ProtoMessage() {}
+
+func (x *SendBytePacketRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_utils_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendBytePacketRequest.ProtoReflect.Descriptor instead.
+func (*SendBytePacketRequest) Descriptor() ([]byte, []int) {
+	return file_proto_utils_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *SendBytePacketRequest) GetPacketId() int32 {
+	if x != nil {
+		return x.PacketId
+	}
+	return 0
+}
+
+func (x *SendBytePacketRequest) GetPayload() []byte {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
 type GetPacketNameIDMappingRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -82,7 +134,7 @@ type GetPacketNameIDMappingRequest struct {
 
 func (x *GetPacketNameIDMappingRequest) Reset() {
 	*x = GetPacketNameIDMappingRequest{}
-	mi := &file_proto_utils_proto_msgTypes[1]
+	mi := &file_proto_utils_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -94,7 +146,7 @@ func (x *GetPacketNameIDMappingRequest) String() string {
 func (*GetPacketNameIDMappingRequest) ProtoMessage() {}
 
 func (x *GetPacketNameIDMappingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_utils_proto_msgTypes[1]
+	mi := &file_proto_utils_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -107,7 +159,7 @@ func (x *GetPacketNameIDMappingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPacketNameIDMappingRequest.ProtoReflect.Descriptor instead.
 func (*GetPacketNameIDMappingRequest) Descriptor() ([]byte, []int) {
-	return file_proto_utils_proto_rawDescGZIP(), []int{1}
+	return file_proto_utils_proto_rawDescGZIP(), []int{2}
 }
 
 type GetClientMaintainedBotBasicInfoRequest struct {
@@ -118,7 +170,7 @@ type GetClientMaintainedBotBasicInfoRequest struct {
 
 func (x *GetClientMaintainedBotBasicInfoRequest) Reset() {
 	*x = GetClientMaintainedBotBasicInfoRequest{}
-	mi := &file_proto_utils_proto_msgTypes[2]
+	mi := &file_proto_utils_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -130,7 +182,7 @@ func (x *GetClientMaintainedBotBasicInfoRequest) String() string {
 func (*GetClientMaintainedBotBasicInfoRequest) ProtoMessage() {}
 
 func (x *GetClientMaintainedBotBasicInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_utils_proto_msgTypes[2]
+	mi := &file_proto_utils_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -143,7 +195,7 @@ func (x *GetClientMaintainedBotBasicInfoRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use GetClientMaintainedBotBasicInfoRequest.ProtoReflect.Descriptor instead.
 func (*GetClientMaintainedBotBasicInfoRequest) Descriptor() ([]byte, []int) {
-	return file_proto_utils_proto_rawDescGZIP(), []int{2}
+	return file_proto_utils_proto_rawDescGZIP(), []int{3}
 }
 
 type GetClientMaintainedExtendInfoRequest struct {
@@ -154,7 +206,7 @@ type GetClientMaintainedExtendInfoRequest struct {
 
 func (x *GetClientMaintainedExtendInfoRequest) Reset() {
 	*x = GetClientMaintainedExtendInfoRequest{}
-	mi := &file_proto_utils_proto_msgTypes[3]
+	mi := &file_proto_utils_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -166,7 +218,7 @@ func (x *GetClientMaintainedExtendInfoRequest) String() string {
 func (*GetClientMaintainedExtendInfoRequest) ProtoMessage() {}
 
 func (x *GetClientMaintainedExtendInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_utils_proto_msgTypes[3]
+	mi := &file_proto_utils_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -179,7 +231,7 @@ func (x *GetClientMaintainedExtendInfoRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use GetClientMaintainedExtendInfoRequest.ProtoReflect.Descriptor instead.
 func (*GetClientMaintainedExtendInfoRequest) Descriptor() ([]byte, []int) {
-	return file_proto_utils_proto_rawDescGZIP(), []int{3}
+	return file_proto_utils_proto_rawDescGZIP(), []int{4}
 }
 
 var File_proto_utils_proto protoreflect.FileDescriptor
@@ -189,13 +241,17 @@ const file_proto_utils_proto_rawDesc = "" +
 	"\x11proto/utils.proto\x12\x13fateark.proto.utils\x1a\x14proto/response.proto\"K\n" +
 	"\x11SendPacketRequest\x12\x1b\n" +
 	"\tpacket_id\x18\x01 \x01(\x05R\bpacketId\x12\x19\n" +
-	"\bjson_str\x18\x02 \x01(\tR\ajsonStr\"\x1f\n" +
+	"\bjson_str\x18\x02 \x01(\tR\ajsonStr\"N\n" +
+	"\x15SendBytePacketRequest\x12\x1b\n" +
+	"\tpacket_id\x18\x01 \x01(\x05R\bpacketId\x12\x18\n" +
+	"\apayload\x18\x02 \x01(\fR\apayload\"\x1f\n" +
 	"\x1dGetPacketNameIDMappingRequest\"(\n" +
 	"&GetClientMaintainedBotBasicInfoRequest\"&\n" +
-	"$GetClientMaintainedExtendInfoRequest2\xf4\x03\n" +
+	"$GetClientMaintainedExtendInfoRequest2\xdb\x04\n" +
 	"\fUtilsService\x12]\n" +
 	"\n" +
-	"SendPacket\x12&.fateark.proto.utils.SendPacketRequest\x1a'.fateark.proto.response.GeneralResponse\x12u\n" +
+	"SendPacket\x12&.fateark.proto.utils.SendPacketRequest\x1a'.fateark.proto.response.GeneralResponse\x12e\n" +
+	"\x0eSendBytePacket\x12*.fateark.proto.utils.SendBytePacketRequest\x1a'.fateark.proto.response.GeneralResponse\x12u\n" +
 	"\x16GetPacketNameIDMapping\x122.fateark.proto.utils.GetPacketNameIDMappingRequest\x1a'.fateark.proto.response.GeneralResponse\x12\x87\x01\n" +
 	"\x1fGetClientMaintainedBotBasicInfo\x12;.fateark.proto.utils.GetClientMaintainedBotBasicInfoRequest\x1a'.fateark.proto.response.GeneralResponse\x12\x83\x01\n" +
 	"\x1dGetClientMaintainedExtendInfo\x129.fateark.proto.utils.GetClientMaintainedExtendInfoRequest\x1a'.fateark.proto.response.GeneralResponseB;Z9github.com/Yeah114/tempest-core/network_api/utils;utilspbb\x06proto3"
@@ -212,25 +268,28 @@ func file_proto_utils_proto_rawDescGZIP() []byte {
 	return file_proto_utils_proto_rawDescData
 }
 
-var file_proto_utils_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_utils_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_proto_utils_proto_goTypes = []any{
 	(*SendPacketRequest)(nil),                      // 0: fateark.proto.utils.SendPacketRequest
-	(*GetPacketNameIDMappingRequest)(nil),          // 1: fateark.proto.utils.GetPacketNameIDMappingRequest
-	(*GetClientMaintainedBotBasicInfoRequest)(nil), // 2: fateark.proto.utils.GetClientMaintainedBotBasicInfoRequest
-	(*GetClientMaintainedExtendInfoRequest)(nil),   // 3: fateark.proto.utils.GetClientMaintainedExtendInfoRequest
-	(*response.GeneralResponse)(nil),               // 4: fateark.proto.response.GeneralResponse
+	(*SendBytePacketRequest)(nil),                  // 1: fateark.proto.utils.SendBytePacketRequest
+	(*GetPacketNameIDMappingRequest)(nil),          // 2: fateark.proto.utils.GetPacketNameIDMappingRequest
+	(*GetClientMaintainedBotBasicInfoRequest)(nil), // 3: fateark.proto.utils.GetClientMaintainedBotBasicInfoRequest
+	(*GetClientMaintainedExtendInfoRequest)(nil),   // 4: fateark.proto.utils.GetClientMaintainedExtendInfoRequest
+	(*response.GeneralResponse)(nil),               // 5: fateark.proto.response.GeneralResponse
 }
 var file_proto_utils_proto_depIdxs = []int32{
 	0, // 0: fateark.proto.utils.UtilsService.SendPacket:input_type -> fateark.proto.utils.SendPacketRequest
-	1, // 1: fateark.proto.utils.UtilsService.GetPacketNameIDMapping:input_type -> fateark.proto.utils.GetPacketNameIDMappingRequest
-	2, // 2: fateark.proto.utils.UtilsService.GetClientMaintainedBotBasicInfo:input_type -> fateark.proto.utils.GetClientMaintainedBotBasicInfoRequest
-	3, // 3: fateark.proto.utils.UtilsService.GetClientMaintainedExtendInfo:input_type -> fateark.proto.utils.GetClientMaintainedExtendInfoRequest
-	4, // 4: fateark.proto.utils.UtilsService.SendPacket:output_type -> fateark.proto.response.GeneralResponse
-	4, // 5: fateark.proto.utils.UtilsService.GetPacketNameIDMapping:output_type -> fateark.proto.response.GeneralResponse
-	4, // 6: fateark.proto.utils.UtilsService.GetClientMaintainedBotBasicInfo:output_type -> fateark.proto.response.GeneralResponse
-	4, // 7: fateark.proto.utils.UtilsService.GetClientMaintainedExtendInfo:output_type -> fateark.proto.response.GeneralResponse
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
+	1, // 1: fateark.proto.utils.UtilsService.SendBytePacket:input_type -> fateark.proto.utils.SendBytePacketRequest
+	2, // 2: fateark.proto.utils.UtilsService.GetPacketNameIDMapping:input_type -> fateark.proto.utils.GetPacketNameIDMappingRequest
+	3, // 3: fateark.proto.utils.UtilsService.GetClientMaintainedBotBasicInfo:input_type -> fateark.proto.utils.GetClientMaintainedBotBasicInfoRequest
+	4, // 4: fateark.proto.utils.UtilsService.GetClientMaintainedExtendInfo:input_type -> fateark.proto.utils.GetClientMaintainedExtendInfoRequest
+	5, // 5: fateark.proto.utils.UtilsService.SendPacket:output_type -> fateark.proto.response.GeneralResponse
+	5, // 6: fateark.proto.utils.UtilsService.SendBytePacket:output_type -> fateark.proto.response.GeneralResponse
+	5, // 7: fateark.proto.utils.UtilsService.GetPacketNameIDMapping:output_type -> fateark.proto.response.GeneralResponse
+	5, // 8: fateark.proto.utils.UtilsService.GetClientMaintainedBotBasicInfo:output_type -> fateark.proto.response.GeneralResponse
+	5, // 9: fateark.proto.utils.UtilsService.GetClientMaintainedExtendInfo:output_type -> fateark.proto.response.GeneralResponse
+	5, // [5:10] is the sub-list for method output_type
+	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -247,7 +306,7 @@ func file_proto_utils_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_utils_proto_rawDesc), len(file_proto_utils_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

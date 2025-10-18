@@ -11,6 +11,11 @@ message SendPacketRequest {
   string json_str = 2;
 }
 
+message SendBytePacketRequest {
+  int32 packet_id = 1;
+  bytes payload = 2;
+}
+
 message GetPacketNameIDMappingRequest {}
 
 message GetClientMaintainedBotBasicInfoRequest {}
@@ -19,6 +24,7 @@ message GetClientMaintainedExtendInfoRequest {}
 
 service UtilsService {
   rpc SendPacket(SendPacketRequest) returns (response.GeneralResponse);
+  rpc SendBytePacket(SendBytePacketRequest) returns (response.GeneralResponse);
   rpc GetPacketNameIDMapping(GetPacketNameIDMappingRequest)
       returns (response.GeneralResponse);
   rpc GetClientMaintainedBotBasicInfo(GetClientMaintainedBotBasicInfoRequest)
